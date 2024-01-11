@@ -35,3 +35,7 @@
 .mine.explosed:hover {
   background-color: yellow;
 }
+
+.cell.revealed {
+  background-color: white !important;
+}
