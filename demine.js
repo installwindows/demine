@@ -2,6 +2,11 @@ var grid = [];
 const SIZE_X = 10;
 const SIZE_Y = 10;
 const NUM_MINES = 10;
+
+const MINE = -1;
+const EMPTY = 0;
+const REVEALED = 10;
+
 $(function(){
 	let $app = $("#app");
 	// get NUM_MINES random number between 0 and SIZE_X*SIZE_Y-1
@@ -53,7 +58,7 @@ function check_around(x, y) {
         } else if (p[0] >= SIZE_X || p[1] >= SIZE_Y) {
             continue;
         }
-        if (grid[p[1]][p[0]] == -1) {
+        if (grid[p[1]][p[0]] < 0) {
             grid[y][x]++;
         }
     }
@@ -67,22 +72,24 @@ function reveal(x, y) {
         [x - 1, y + 1], [x, y + 1], [x + 1, y + 1]
     ];
     for (const p of positions) {
-        if ($(`.cell[data-row=${p[1]}][data-col=${p[0]}]`).hasClass("revealed")) {
-            continue;
-        }
         if (p[0] < 0 || p[1] < 0) {
             continue;
         } else if (p[0] >= SIZE_X || p[1] >= SIZE_Y) {
             continue;
         }
-        if (grid[p[1]][p[0]] === 0) {
-            $(`.cell[data-row=${p[1]}][data-col=${p[0]}]`).addClass("revealed").text(grid[p[1]][p[0]]);
-            reveal(p[0], p[1]);
-        } else if (grid[p[1]][p[0]] === -1) {
+				let $cell = $(`.cell[data-row=${p[1]}][data-col=${p[0]}]`);
+        if ($cell.hasClass("revealed")) {
             continue;
-        } else {
-            $(`.cell[data-row=${p[1]}][data-col=${p[0]}]`).addClass("revealed").text(grid[p[1]][p[0]]);
         }
+				let val = grid[p[1]][p[0]];
+        if (val >= 0) {
+            $cell.addClass("revealed").text(val);
+						if (val === 0) {
+							reveal(p[0], p[1]);
+						}
+        } else {
+            continue;
+				}
     }
 }
 
