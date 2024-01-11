@@ -1,0 +1,37 @@
+#app {
+  /* 10x10 grid */
+  --grid-rows: 10;
+  --grid-cols: 10;
+  /* 40px squares */
+  --square-size: 40px;
+  /* 2px border */
+  --border-size: 2px;
+
+  display: grid;
+  grid-template-rows: repeat(var(--grid-rows), var(--square-size));
+  grid-template-columns: repeat(var(--grid-cols), var(--square-size));
+  grid-gap: var(--border-size);
+  border: var(--border-size) solid black;
+  width: calc(var(--grid-cols) * var(--square-size) + var(--border-size));
+  height: calc(var(--grid-rows) * var(--square-size) + var(--border-size));
+  margin: 0 auto;
+}
+
+.cell {
+  background-color: #ccc;
+  border: var(--border-size) solid black;
+  width: var(--square-size);
+  height: var(--square-size);
+}
+
+.cell:hover {
+  background-color: #aaa;
+}
+
+.mine.explosed {
+  background-color: red;
+}
+
+.mine.explosed:hover {
+  background-color: yellow;
+}
