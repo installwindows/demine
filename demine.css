@@ -1,4 +1,17 @@
 #app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+#app > * {
+  margin: 10px;
+}
+#info {
+  font-size: 20px;
+}
+#grid {
   /* 10x10 grid */
   --grid-rows: 10;
   --grid-cols: 10;
