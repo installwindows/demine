@@ -42,5 +42,38 @@
 }
 
 .cell.revealed {
-  background-color: white !important;
+  /* background-color: white !important; */
+}
+
+.cell.flagged {
+  background-color: green;
+}
+
+.cell[data-val="0"] {
+  /* background-color: #DEDEDC; */
+  background-color: white;
+}
+.cell[data-val="1"] {
+  background-color: #DDFAC3;
+}
+.cell[data-val="2"] {
+  background-color: #ECEDBF;
+}
+.cell[data-val="3"] {
+  background-color: #EDDAB4;
+}
+.cell[data-val="4"] {
+  background-color: #EDC38A;
+}
+.cell[data-val="5"] {
+  background-color: #F7A1A2;
+}
+.cell[data-val="6"] {
+  background-color: #FEA785;
+}
+.cell[data-val="7"] {
+  background-color: #FF7D60;
+}
+.cell[data-val="8"] {
+  background-color: #FF323C;
 }
