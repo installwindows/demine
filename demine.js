@@ -1,3 +1,14 @@
+class Cell {
+  constructor(x, y, val, revealed=false, flagged=false) {
+    this.x = x;
+    this.y = y;
+    this.val = val;
+    this.revealed = revealed;
+    this.flagged = flagged;
+  }
+}
+
+
 var grid = [];
 const SIZE_X = 10;
 const SIZE_Y = 10;
@@ -18,30 +29,30 @@ $(function(){
 		}
 	}
 	// create a SIZE_X*SIZE_Y div grid
-    grid = new Array(SIZE_Y);
+  grid = new Array(SIZE_Y);
 	for(let i = 0; i < SIZE_Y; i++){
-        grid[i] = new Array(SIZE_X);
+    grid[i] = new Array(SIZE_X);
 		for(let j = 0; j < SIZE_X; j++){
 			let $div = $(`<div class="cell" data-row="${i}" data-col="${j}"></div>`);
 			if (mines.indexOf(i * SIZE_Y + j) !== -1){
 				$div.addClass("mine");
-                grid[i][j] = -1;
+        grid[i][j] = new Cell(j, i, MINE);
 			} else {
-                grid[i][j] = 0;
-            }
+        grid[i][j] = new Cell(j, i, EMPTY);
+      }
 			$app.append($div);
 		}
 	}
     // setup grid numbers
 	for(let i = 0; i < SIZE_Y; i++){
 		for(let j = 0; j < SIZE_X; j++){
-            if (grid[i][j] == -1) {
-                continue;
-            }
-            check_around(j, i);
-        }
+      if (grid[i][j].val === MINE) {
+        continue;
+      }
+      check_around(j, i);
     }
-    console.log(grid);
+  }
+  console.log(grid);
 });
 
 function get_adjacent(x, y) {
@@ -66,12 +77,12 @@ function get_adjacent(x, y) {
 }
 
 function check_around(x, y) {
-    const positions = get_adjacent(x, y);
-    for (const p of positions) {
-        if (grid[p[1]][p[0]] < 0) {
-            grid[y][x]++;
-        }
+  const positions = get_adjacent(x, y);
+  for (const p of positions) {
+    if (grid[p[1]][p[0]].val === MINE) {
+        grid[y][x].val++;
     }
+  }
 }
 
 function reveal(x, y) {
@@ -79,22 +90,24 @@ function reveal(x, y) {
   // if the cell is empty, reveal all the adjacent cells
   // if the cell is a number, reveal the cell
   const positions = get_adjacent(x, y);
-  if (grid[y][x] === -1) {
+  if (grid[y][x].val === MINE) {
     $(`.cell[data-row=${y}][data-col=${x}]`).addClass("explosed");
     return;
   }
-  if (grid[y][x] > 0) {
-    $(`.cell[data-row=${y}][data-col=${x}]`).addClass("revealed").text(grid[y][x]).attr("data-val", grid[y][x]);
+  if (grid[y][x].val > 0) {
+    grid[y][x].revealed = true;
+    $(`.cell[data-row=${y}][data-col=${x}]`).addClass("revealed").text(grid[y][x].val).attr("data-val", grid[y][x].val);
   } else {
     for (const p of positions) {
       let $cell = $(`.cell[data-row=${p[1]}][data-col=${p[0]}]`);
-      if ($cell.hasClass("revealed") || $cell.hasClass("flagged")) {
+      let cell = grid[p[1]][p[0]];
+      if (cell.revealed || cell.flagged) {
         continue;
       }
-      let val = grid[p[1]][p[0]];
-      if (val >= 0) {
-        $cell.addClass("revealed").text(val).attr("data-val", val);
-        if (val === 0) {
+      if (cell.val >= 0) {
+        $cell.addClass("revealed").text(cell.val).attr("data-val", cell.val);
+        cell.revealed = true;
+        if (cell.val === EMPTY) {
           reveal(p[0], p[1]);
         }
       }
@@ -107,20 +120,19 @@ function reveal2(x, y) {
   // check if the number of flagged cells around is equal to the value of the cell
   // if yes, reveal all the non-flagged cells around
   // if no, do nothing
-  let $cell = $(`.cell[data-row=${y}][data-col=${x}]`);
-  let val = grid[y][x];
+  let val = grid[y][x].val;
   let flagged = 0;
   const positions = get_adjacent(x, y);
   for (const p of positions) {
-    let $cell = $(`.cell[data-row=${p[1]}][data-col=${p[0]}]`);
-    if ($cell.hasClass("flagged")) {
+    let cell = grid[p[1]][p[0]];
+    if (cell.flagged) {
       flagged++;
     }
   }
   if (flagged === val) {
     for (const p of positions) {
-      let $cell = $(`.cell[data-row=${p[1]}][data-col=${p[0]}]`);
-      if ($cell.hasClass("flagged")) {
+      let cell = grid[p[1]][p[0]];
+      if (cell.flagged) {
         continue;
       }
       reveal(p[0], p[1]);
@@ -131,9 +143,13 @@ function reveal2(x, y) {
 // capture right click in a cell
 $(document).on("contextmenu", ".cell", function(event){
 	event.preventDefault();
-	if (!$(this).hasClass("revealed")){
-		$(this).toggleClass("flagged");
-	}
+  const x = $(this).data("col");
+  const y = $(this).data("row");
+  let cell = grid[y][x];
+  if (!cell.revealed) {
+    $(this).toggleClass("flagged");
+    cell.flagged = !cell.flagged;
+  }
 });
 
 $(document).on("click", ".cell", function(event){
@@ -142,13 +158,15 @@ $(document).on("click", ".cell", function(event){
 		return;
 	}
 	// else left click
-	if ($(this).hasClass("mine")){
+  const x = $(this).data("col");
+  const y = $(this).data("row");
+  let cell = grid[y][x];
+	if (cell.val === MINE){
+    cell.revealed = true;
 		$(this).addClass("explosed");
-	} else if ($(this).hasClass("revealed")){
-    reveal2($(this).data("col"), $(this).data("row"));
+	} else if (cell.revealed){
+    reveal2(x, y);
 	} else {
-    const x = $(this).data("col");
-    const y = $(this).data("row");
     reveal(x, y);
 	}
 });
