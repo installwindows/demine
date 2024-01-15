@@ -159,10 +159,8 @@ $(document).on("contextmenu", ".cell", function(event){
     $(this).toggleClass("flagged");
     cell.flagged = !cell.flagged;
     if (cell.flagged) {
-      $(this).text("F");
       numFlagged++;
     } else {
-      $(this).text("");
       numFlagged--;
     }
     $("#flagged-count").text(numFlagged);

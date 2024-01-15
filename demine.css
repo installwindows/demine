@@ -5,34 +5,32 @@
   justify-content: center;
   height: 100vh;
 }
-#app > * {
-  margin: 10px;
-}
 #info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
   font-size: 20px;
 }
 #grid {
-  /* 10x10 grid */
   --grid-rows: 10;
   --grid-cols: 10;
-  /* 40px squares */
   --square-size: 40px;
-  /* 2px border */
   --border-size: 2px;
 
   display: grid;
   grid-template-rows: repeat(var(--grid-rows), var(--square-size));
   grid-template-columns: repeat(var(--grid-cols), var(--square-size));
   grid-gap: var(--border-size);
-  border: var(--border-size) solid black;
-  width: calc(var(--grid-cols) * var(--square-size) + var(--border-size));
-  height: calc(var(--grid-rows) * var(--square-size) + var(--border-size));
-  margin: 0 auto;
+  border: var(--border-size) solid #757575;
+  width: calc(var(--grid-cols) * var(--square-size) + var(--border-size) * var(--grid-cols) + var(--border-size));
+  height: calc(var(--grid-rows) * var(--square-size) + var(--border-size) * var(--grid-rows) + var(--border-size));
 }
 
 .cell {
   background-color: #ccc;
-  border: var(--border-size) solid black;
+  border: var(--border-size) solid white;
   width: var(--square-size);
   height: var(--square-size);
   font-size: 20px;
@@ -40,6 +38,12 @@
   vertical-align: middle;
   line-height: var(--square-size);
   cursor: pointer;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.cell:active {
+  /* a blue inside shadow */
+  box-shadow: inset 0 0 10px rgba(0, 0, 255, 0.5);
 }
 
 .cell:hover {
@@ -47,24 +51,22 @@
 }
 
 .mine.explosed {
-  background-color: red;
+  background-color: #d96868;
 }
-
-.mine.explosed:hover {
-  background-color: yellow;
+.mine.explosed::after {
+  content: "💣";
 }
 
 .cell.revealed {
   /* background-color: white !important; */
 }
 
-.cell.flagged {
-  background-color: green;
+.cell.flagged::after {
+  content: "🚩";
 }
 
 .cell[data-val="0"] {
-  /* background-color: #DEDEDC; */
-  background-color: white;
+  background-color: #ECECEC;
 }
 .cell[data-val="1"] {
   background-color: #DDFAC3;
@@ -89,4 +91,13 @@
 }
 .cell[data-val="8"] {
   background-color: #FF323C;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+body {
+  background-color: #f5f5f5;
+  font-family: sans-serif;
 }
