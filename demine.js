@@ -23,7 +23,7 @@ class Game {
     this.numMinesExploded = 0;
     this.SIZE_X = 10;
     this.SIZE_Y = 10;
-    this.NUM_MINES = 10;
+    this.NUM_MINES = 20;
     this.$grid = $("#grid");
     this.firstClick = true;
     this.setup_events();
@@ -63,9 +63,14 @@ class Game {
   start(x, y) {
     // get NUM_MINES random number between 0 and SIZE_X*SIZE_Y-1
     let mines = [];
+    let toAvoids = this.get_adjacent(x, y);
+    toAvoids.push([x, y]);
+    toAvoids = toAvoids.map(function(p){
+      return p[1] * this.SIZE_Y + p[0];
+    }.bind(this));
     while(mines.length < this.NUM_MINES){
       let mine = Math.floor(Math.random() * this.SIZE_X*this.SIZE_Y);
-      if (mine === y * this.SIZE_Y + x) {
+      if (toAvoids.indexOf(mine) !== -1) {
         continue;
       }
       if(mines.indexOf(mine) === -1){
@@ -125,58 +130,48 @@ class Game {
       }
     }
   }
-  reveal(x, y) {
-    // reveal the cell at (x, y)
-    // if the cell is empty, reveal all the adjacent cells
-    // if the cell is a number, reveal the cell
-    const positions = this.get_adjacent(x, y);
-    if (this.grid[y][x].val === MINE) {
-      $(`.cell[data-row=${y}][data-col=${x}]`).attr("data-val", MINE).addClass("boom");
-      this.numMinesExploded++;
-      return;
-    }
-    if (this.grid[y][x].val > 0 && !this.grid[y][x].revealed && !this.grid[y][x].flagged) {
-      this.grid[y][x].revealed = true;
-      this.numRevealed++;
-      $(`.cell[data-row=${y}][data-col=${x}]`).text(this.grid[y][x].val).attr("data-val", this.grid[y][x].val);
-    } else {
-      for (const p of positions) {
-        let $cell = $(`.cell[data-row=${p[1]}][data-col=${p[0]}]`);
-        let cell = this.grid[p[1]][p[0]];
-        if (cell.revealed || cell.flagged) {
-          continue;
-        }
-        if (cell.val >= 0) {
-          $cell.text(cell.val).attr("data-val", cell.val);
-          cell.revealed = true;
-          this.numRevealed++;
-          if (cell.val === EMPTY) {
-            this.reveal(p[0], p[1]);
-          }
-        }
-      }
-    }
-  }
 
-  reveal2(x, y) {
-    // clicked on a revealed cell
-    // check if the number of flagged cells around is equal to the value of the cell
-    // if yes, reveal all the non-flagged cells around
-    // if no, do nothing
-    let cell = this.grid[y][x];
-    if (cell.val === EMPTY) {
-      return;
-    }
-    let flags = 0;
-    const positions = this.get_adjacent(x, y);
-    for (const p of positions) {
-      let cell = this.grid[p[1]][p[0]];
-      if (cell.flagged) {
-        flags++;
+  reveal_cell(x, y) {
+    let toReveal = [];
+    toReveal.push([x, y]);
+    let max = 0;
+    let clickedCell = this.grid[y][x];
+    if (clickedCell.revealed && clickedCell.val > 0) {
+      let flags = 0;
+      let positions = this.get_adjacent(x, y);
+      for (const p of positions) {
+        let cell = this.grid[p[1]][p[0]];
+        if (cell.flagged) {
+          flags++;
+        }
+      }
+      if (flags === clickedCell.val) {
+        toReveal.push(...positions);
       }
     }
-    if (flags === cell.val) {
-      this.reveal(x, y);
+    while(toReveal.length > 0){
+      let p = toReveal.pop();
+      let cell = this.grid[p[1]][p[0]];
+      if (cell.flagged || cell.revealed) {
+        continue;
+      }
+      if (cell.val === MINE) {
+        $(`.cell[data-row=${p[1]}][data-col=${p[0]}]`).attr("data-val", MINE).addClass("boom");
+        this.numMinesExploded++;
+        return;
+      }
+      if (cell.val === EMPTY) {
+        let positions = this.get_adjacent(p[0], p[1]);
+        toReveal.push(...positions);
+      }
+      cell.revealed = true;
+      this.numRevealed++;
+      $(`.cell[data-row=${p[1]}][data-col=${p[0]}]`).text(cell.val).attr("data-val", cell.val);
+      max++;
+      if (max > 100) {
+        console.log("max reached");
+        break;
+      }
     }
   }
 
@@ -205,6 +200,7 @@ class Game {
       if (event.which === 3){
         return;
       }
+      // else left click
       let $cell = $(event.target);
       const x = $cell.data("col");
       const y = $cell.data("row");
@@ -220,13 +216,7 @@ class Game {
         }.bind(this), 1000);
         this.start(x, y);
       }
-      // else left click
-      let cell = this.grid[y][x];
-      if (cell.revealed){
-        this.reveal2(x, y);
-      } else {
-        this.reveal(x, y);
-      }
+      this.reveal_cell(x, y);
       // - check if all the non-mine cells are revealed
       // - check if a mine is revealed
       if (this.numRevealed === this.SIZE_X * this.SIZE_Y - this.NUM_MINES) {
