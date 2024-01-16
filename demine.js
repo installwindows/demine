@@ -101,7 +101,7 @@ function reveal(x, y) {
     numMinesExploded++;
     return;
   }
-  if (grid[y][x].val > 0 && !grid[y][x].revealed) {
+  if (grid[y][x].val > 0 && !grid[y][x].revealed && !grid[y][x].flagged) {
     grid[y][x].revealed = true;
     numRevealed++;
     $(`.cell[data-row=${y}][data-col=${x}]`).addClass("revealed").text(grid[y][x].val).attr("data-val", grid[y][x].val);
@@ -142,13 +142,7 @@ function reveal2(x, y) {
     }
   }
   if (flags === cell.val) {
-    for (const p of positions) {
-      let cell = grid[p[1]][p[0]];
-      if (cell.flagged) {
-        continue;
-      }
-      reveal(p[0], p[1]);
-    }
+    reveal(x, y);
   }
 }
 
@@ -188,11 +182,11 @@ $(document).on("click", ".cell", function(event){
   // - check if a mine is revealed
   if (numRevealed === SIZE_X * SIZE_Y - NUM_MINES) {
     clearInterval(timerInterval);
-    alert("You win!");
+    $("#message").text("You win! 😄");
   }
   if (numMinesExploded > 0) {
     clearInterval(timerInterval);
-    alert("You lose!");
+    $("#message").text("You lose! 😵");
   }
 });
 
