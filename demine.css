@@ -53,12 +53,8 @@
 .mine.explosed {
   background-color: #d96868;
 }
-.mine.explosed::after {
+.mine.explosed::after,.mine.revealed::after {
   content: "💣";
-}
-
-.cell.revealed {
-  /* background-color: white !important; */
 }
 
 .cell.flagged::after {
@@ -100,4 +96,9 @@ html, body {
 body {
   background-color: #f5f5f5;
   font-family: sans-serif;
+}
+
+#message {
+  height: 25px;
+  width: 100%;
 }

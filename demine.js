@@ -1,3 +1,8 @@
+const MINE = -1;
+const EMPTY = 0;
+const REVEALED = 10;
+
+
 class Cell {
   constructor(x, y, val, revealed=false, flagged=false) {
     this.x = x;
@@ -8,198 +13,244 @@ class Cell {
   }
 }
 
+class Game {
+  constructor() {
+    this.grid = [];
+    this.timer = 0;
+    this.timerInterval = 0;
+    this.numRevealed = 0;
+    this.numFlagged = 0;
+    this.numMinesExploded = 0;
+    this.SIZE_X = 10;
+    this.SIZE_Y = 10;
+    this.NUM_MINES = 10;
+    this.$grid = $("#grid");
+  }
 
-var grid = [];
-var timer = 0;
-var timerInterval = 0;
-var numRevealed = 0;
-var numFlagged = 0;
-var numMinesExploded = 0;
-const SIZE_X = 10;
-const SIZE_Y = 10;
-const NUM_MINES = 10;
+  clean() {
+    clearInterval(this.timerInterval);
+    this.grid = [];
+    this.timer = 0;
+    this.timerInterval = 0;
+    this.numRevealed = 0;
+    this.numFlagged = 0;
+    this.numMinesExploded = 0;
+    this.$grid.html("");
+    $("#message").text("");
+    $("#timer").text("0:00");
+    $("#flagged-count").text("0");
+    this.$grid.addClass("running");
+  }
 
-const MINE = -1;
-const EMPTY = 0;
-const REVEALED = 10;
-
-$(function(){
-	let $grid = $("#grid");
-	// get NUM_MINES random number between 0 and SIZE_X*SIZE_Y-1
-	let mines = [];
-	while(mines.length < NUM_MINES){
-		let mine = Math.floor(Math.random() * SIZE_X*SIZE_Y);
-		if(mines.indexOf(mine) === -1){
-			mines.push(mine);
-		}
-	}
-	// create a SIZE_X*SIZE_Y div grid
-  grid = new Array(SIZE_Y);
-	for(let i = 0; i < SIZE_Y; i++){
-    grid[i] = new Array(SIZE_X);
-		for(let j = 0; j < SIZE_X; j++){
-			let $div = $(`<div class="cell" data-row="${i}" data-col="${j}"></div>`);
-			if (mines.indexOf(i * SIZE_Y + j) !== -1){
-				$div.addClass("mine");
-        grid[i][j] = new Cell(j, i, MINE);
-			} else {
-        grid[i][j] = new Cell(j, i, EMPTY);
+  start() {
+    this.clean();
+    // get NUM_MINES random number between 0 and SIZE_X*SIZE_Y-1
+    let mines = [];
+    while(mines.length < this.NUM_MINES){
+      let mine = Math.floor(Math.random() * this.SIZE_X*this.SIZE_Y);
+      if(mines.indexOf(mine) === -1){
+        mines.push(mine);
       }
-			$grid.append($div);
-		}
-	}
+    }
+    // create a SIZE_X*SIZE_Y div grid
+    this.grid = new Array(this.SIZE_Y);
+    for(let i = 0; i < this.SIZE_Y; i++){
+      this.grid[i] = new Array(this.SIZE_X);
+      for(let j = 0; j < this.SIZE_X; j++){
+        let $div = $(`<div class="cell" data-row="${i}" data-col="${j}"></div>`);
+        if (mines.indexOf(i * this.SIZE_Y + j) !== -1){
+          $div.addClass("mine");
+          this.grid[i][j] = new Cell(j, i, MINE);
+        } else {
+          this.grid[i][j] = new Cell(j, i, EMPTY);
+        }
+        this.$grid.append($div);
+      }
+    }
     // setup grid numbers
-	for(let i = 0; i < SIZE_Y; i++){
-		for(let j = 0; j < SIZE_X; j++){
-      if (grid[i][j].val === MINE) {
-        continue;
+    for(let i = 0; i < this.SIZE_Y; i++){
+      for(let j = 0; j < this.SIZE_X; j++){
+        if (this.grid[i][j].val === MINE) {
+          continue;
+        }
+        this.fill_numbers(j, i);
       }
-      check_around(j, i);
     }
+    $("#mines-count").text(this.NUM_MINES);
+    this.setup_events();
+    console.log(this.grid);
   }
-  $("#mines-count").text(NUM_MINES);
-  console.log(grid);
-});
 
-function get_adjacent(x, y) {
-  // up-left, up, up-right
-  // left, right
-  // down-left, down, down-right
-  const positions = [
-    [x - 1, y - 1], [x, y - 1], [x + 1, y - 1],
-    [x - 1, y], [x + 1, y],
-    [x - 1, y + 1], [x, y + 1], [x + 1, y + 1]
-  ];
-  let adj = [];
-  for (const p of positions) {
-    if (p[0] < 0 || p[1] < 0) {
-      continue;
-    } else if (p[0] >= SIZE_X || p[1] >= SIZE_Y) {
-      continue;
-    }
-    adj.push(p);
-  }
-  return adj;
-}
-
-function check_around(x, y) {
-  const positions = get_adjacent(x, y);
-  for (const p of positions) {
-    if (grid[p[1]][p[0]].val === MINE) {
-        grid[y][x].val++;
-    }
-  }
-}
-
-function reveal(x, y) {
-  // reveal the cell at (x, y)
-  // if the cell is empty, reveal all the adjacent cells
-  // if the cell is a number, reveal the cell
-  const positions = get_adjacent(x, y);
-  if (grid[y][x].val === MINE) {
-    $(`.cell[data-row=${y}][data-col=${x}]`).addClass("explosed");
-    numMinesExploded++;
-    return;
-  }
-  if (grid[y][x].val > 0 && !grid[y][x].revealed && !grid[y][x].flagged) {
-    grid[y][x].revealed = true;
-    numRevealed++;
-    $(`.cell[data-row=${y}][data-col=${x}]`).addClass("revealed").text(grid[y][x].val).attr("data-val", grid[y][x].val);
-  } else {
+  get_adjacent(x, y) {
+    // up-left, up, up-right
+    // left, right
+    // down-left, down, down-right
+    const positions = [
+      [x - 1, y - 1], [x, y - 1], [x + 1, y - 1],
+      [x - 1, y], [x + 1, y],
+      [x - 1, y + 1], [x, y + 1], [x + 1, y + 1]
+    ];
+    let adj = [];
     for (const p of positions) {
-      let $cell = $(`.cell[data-row=${p[1]}][data-col=${p[0]}]`);
-      let cell = grid[p[1]][p[0]];
-      if (cell.revealed || cell.flagged) {
+      if (p[0] < 0 || p[1] < 0) {
+        continue;
+      } else if (p[0] >= this.SIZE_X || p[1] >= this.SIZE_Y) {
         continue;
       }
-      if (cell.val >= 0) {
-        $cell.addClass("revealed").text(cell.val).attr("data-val", cell.val);
-        cell.revealed = true;
-        numRevealed++;
-        if (cell.val === EMPTY) {
-          reveal(p[0], p[1]);
+      adj.push(p);
+    }
+    return adj;
+  }
+
+  fill_numbers(x, y) {
+    const positions = this.get_adjacent(x, y);
+    for (const p of positions) {
+      if (this.grid[p[1]][p[0]].val === MINE) {
+          this.grid[y][x].val++;
+      }
+    }
+  }
+  reveal(x, y) {
+    // reveal the cell at (x, y)
+    // if the cell is empty, reveal all the adjacent cells
+    // if the cell is a number, reveal the cell
+    const positions = this.get_adjacent(x, y);
+    if (this.grid[y][x].val === MINE) {
+      $(`.cell[data-row=${y}][data-col=${x}]`).addClass("explosed");
+      this.numMinesExploded++;
+      return;
+    }
+    if (this.grid[y][x].val > 0 && !this.grid[y][x].revealed && !this.grid[y][x].flagged) {
+      this.grid[y][x].revealed = true;
+      this.numRevealed++;
+      $(`.cell[data-row=${y}][data-col=${x}]`).addClass("revealed").text(this.grid[y][x].val).attr("data-val", this.grid[y][x].val);
+    } else {
+      for (const p of positions) {
+        let $cell = $(`.cell[data-row=${p[1]}][data-col=${p[0]}]`);
+        let cell = this.grid[p[1]][p[0]];
+        if (cell.revealed || cell.flagged) {
+          continue;
+        }
+        if (cell.val >= 0) {
+          $cell.addClass("revealed").text(cell.val).attr("data-val", cell.val);
+          cell.revealed = true;
+          this.numRevealed++;
+          if (cell.val === EMPTY) {
+            this.reveal(p[0], p[1]);
+          }
+        }
+      }
+    }
+  }
+
+  reveal2(x, y) {
+    // clicked on a revealed cell
+    // check if the number of flagged cells around is equal to the value of the cell
+    // if yes, reveal all the non-flagged cells around
+    // if no, do nothing
+    let cell = this.grid[y][x];
+    if (cell.val === EMPTY) {
+      return;
+    }
+    let flags = 0;
+    const positions = this.get_adjacent(x, y);
+    for (const p of positions) {
+      let cell = this.grid[p[1]][p[0]];
+      if (cell.flagged) {
+        flags++;
+      }
+    }
+    if (flags === cell.val) {
+      this.reveal(x, y);
+    }
+  }
+
+  setup_events() {
+    // capture right click in a cell
+    $(document).off("contextmenu.game").on("contextmenu.game", "#grid .cell", function(event){
+      event.preventDefault();
+      let $cell = $(event.target);
+      const x = $cell.data("col");
+      const y = $cell.data("row");
+      let cell = this.grid[y][x];
+      if (!cell.revealed) {
+        $(event.target).toggleClass("flagged");
+        cell.flagged = !cell.flagged;
+        if (cell.flagged) {
+          this.numFlagged++;
+        } else {
+          this.numFlagged--;
+        }
+        $("#flagged-count").text(this.numFlagged);
+      }
+    }.bind(this));
+
+    $(document).off("click.game").on("click.game", "#grid.running .cell", function(event){
+      // right click
+      if (event.which === 3){
+        return;
+      }
+      // else left click
+      let $cell = $(event.target);
+      const x = $cell.data("col");
+      const y = $cell.data("row");
+      let cell = this.grid[y][x];
+      if (cell.revealed){
+        this.reveal2(x, y);
+      } else {
+        this.reveal(x, y);
+      }
+      // - check if all the non-mine cells are revealed
+      // - check if a mine is revealed
+      if (this.numRevealed === this.SIZE_X * this.SIZE_Y - this.NUM_MINES) {
+        this.end(true);
+      }
+      if (this.numMinesExploded > 0) {
+        this.end(false);
+      }
+    }.bind(this));
+
+    // on first click, save current time
+    $(document).one("click", ".cell", function(event){
+      this.timer = new Date().getTime();
+      this.timerInterval = setInterval(function(){
+        let now = new Date().getTime();
+        let diff = now - this.timer;
+        let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        let seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        $("#timer").text(`${minutes}:${seconds < 10 ? "0" + seconds : seconds}`);
+      }.bind(this), 1000);
+    }.bind(this));
+  }
+
+  // reveal all the mines
+  // stop the timer
+  // show a message
+  // show all the cells
+  end(win) {
+    let message = win ? "You win! 🎉" : "You lose! 😵";
+    clearInterval(this.timerInterval);
+    $("#message").text(message);
+    this.$grid.removeClass("running");
+    if (!win) {
+      console.log("reveal all the mines");
+      for(let i = 0; i < this.SIZE_Y; i++){
+        for(let j = 0; j < this.SIZE_X; j++){
+          let cell = this.grid[i][j];
+          if (cell.val === MINE) {
+            $(`.cell[data-row=${i}][data-col=${j}]`).addClass("revealed");
+          }
         }
       }
     }
   }
 }
 
-function reveal2(x, y) {
-  // clicked on a revealed cell
-  // check if the number of flagged cells around is equal to the value of the cell
-  // if yes, reveal all the non-flagged cells around
-  // if no, do nothing
-  let cell = grid[y][x];
-  if (cell.val === EMPTY) {
-    return;
-  }
-  let flags = 0;
-  const positions = get_adjacent(x, y);
-  for (const p of positions) {
-    let cell = grid[p[1]][p[0]];
-    if (cell.flagged) {
-      flags++;
-    }
-  }
-  if (flags === cell.val) {
-    reveal(x, y);
-  }
-}
 
-// capture right click in a cell
-$(document).on("contextmenu", ".cell", function(event){
-	event.preventDefault();
-  const x = $(this).data("col");
-  const y = $(this).data("row");
-  let cell = grid[y][x];
-  if (!cell.revealed) {
-    $(this).toggleClass("flagged");
-    cell.flagged = !cell.flagged;
-    if (cell.flagged) {
-      numFlagged++;
-    } else {
-      numFlagged--;
-    }
-    $("#flagged-count").text(numFlagged);
-  }
-});
-
-$(document).on("click", ".cell", function(event){
-	// right click
-	if (event.which === 3){
-		return;
-	}
-	// else left click
-  const x = $(this).data("col");
-  const y = $(this).data("row");
-  let cell = grid[y][x];
-	if (cell.revealed){
-    reveal2(x, y);
-	} else {
-    reveal(x, y);
-	}
-  // - check if all the non-mine cells are revealed
-  // - check if a mine is revealed
-  if (numRevealed === SIZE_X * SIZE_Y - NUM_MINES) {
-    clearInterval(timerInterval);
-    $("#message").text("You win! 😄");
-  }
-  if (numMinesExploded > 0) {
-    clearInterval(timerInterval);
-    $("#message").text("You lose! 😵");
-  }
-});
-
-// on first click, save current time
-$(document).one("click", ".cell", function(event){
-  if (timer === 0) {
-    timer = new Date().getTime();
-    timerInterval = setInterval(function(){
-      let now = new Date().getTime();
-      let diff = now - timer;
-      let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      let seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      $("#timer").text(`${minutes}:${seconds < 10 ? "0" + seconds : seconds}`);
-    }, 1000);
-  }
+$(function(){
+  game = new Game();
+  game.start();
+  $("#restart button").click(function(){
+    game.start();
+  });
 });
