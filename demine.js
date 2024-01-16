@@ -129,16 +129,19 @@ function reveal2(x, y) {
   // check if the number of flagged cells around is equal to the value of the cell
   // if yes, reveal all the non-flagged cells around
   // if no, do nothing
-  let val = grid[y][x].val;
-  let flagged = 0;
+  let cell = grid[y][x];
+  if (cell.val === EMPTY) {
+    return;
+  }
+  let flags = 0;
   const positions = get_adjacent(x, y);
   for (const p of positions) {
     let cell = grid[p[1]][p[0]];
     if (cell.flagged) {
-      flagged++;
+      flags++;
     }
   }
-  if (flagged === val) {
+  if (flags === cell.val) {
     for (const p of positions) {
       let cell = grid[p[1]][p[0]];
       if (cell.flagged) {
