@@ -50,17 +50,17 @@
   background-color: #aaa;
 }
 
-.mine.explosed {
+.boom {
   background-color: #d96868;
-}
-.mine.explosed::after,.mine.revealed::after {
-  content: "💣";
 }
 
 .cell.flagged::after {
   content: "🚩";
 }
 
+.cell[data-val="-1"]::after {
+  content: "💣";
+}
 .cell[data-val="0"] {
   background-color: #ECECEC;
 }
