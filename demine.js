@@ -29,6 +29,32 @@ class Game {
     this.setup_events();
   }
 
+  set_params(size_x, size_y, num_mines) {
+    this.SIZE_X = size_x;
+    this.SIZE_Y = size_y;
+    this.NUM_MINES = num_mines;
+    let error_msg = "";
+    if (this.SIZE_X * this.SIZE_Y < this.NUM_MINES) {
+      error_msg = "WIDTH * HEIGHT < NUM_MINES !<br>";
+    }
+    if (this.SIZE_X < 5 || this.SIZE_Y < 5) {
+      error_msg = "WIDTH < 5 or HEIGHT < 5 !<br>";
+    }
+    if (this.NUM_MINES < 1) {
+      error_msg = "NUM_MINES < 1 !<br>";
+    }
+    if (error_msg !== "") {
+      $("#custom-difficulty-form .error").html(error_msg);
+      return false;
+    }
+    $("#custom-difficulty-form .error").html("");
+
+    this.$grid.css("--grid-rows", this.SIZE_Y);
+    this.$grid.css("--grid-cols", this.SIZE_X);
+    console.log("set_params", this.SIZE_X, this.SIZE_Y, this.NUM_MINES);
+    return true;
+  }
+
   clean() {
     clearInterval(this.timerInterval);
     this.grid = [];
@@ -53,6 +79,10 @@ class Game {
       }
     }
     this.$grid.addClass("running");
+    $("#custom-difficulty-form").hide();
+    $(".difficulty-choice").show();
+    $("#difficulty-settings-container").hide();
+    $("#game").show();
   }
 
   reset() {
@@ -68,6 +98,7 @@ class Game {
     toAvoids = toAvoids.map(function(p){
       return p[1] * this.SIZE_Y + p[0];
     }.bind(this));
+    // TODO: this doesn't work for non-square grids
     while(mines.length < this.NUM_MINES){
       let mine = Math.floor(Math.random() * this.SIZE_X*this.SIZE_Y);
       if (toAvoids.indexOf(mine) !== -1) {
@@ -77,13 +108,16 @@ class Game {
         mines.push(mine);
       }
     }
+    console.log("mines", mines);
     // setup grid
     this.grid = new Array(this.SIZE_Y);
     for(let i = 0; i < this.SIZE_Y; i++){
       this.grid[i] = new Array(this.SIZE_X);
       for(let j = 0; j < this.SIZE_X; j++){
+        console.log(i * this.SIZE_Y + j);
         if (mines.indexOf(i * this.SIZE_Y + j) !== -1){
           this.grid[i][j] = new Cell(j, i, MINE);
+          console.log("mine set at", j, i);
         } else {
           this.grid[i][j] = new Cell(j, i, EMPTY);
         }
@@ -251,11 +285,37 @@ class Game {
   }
 }
 
-
 $(function(){
   game = new Game();
-  game.init();
+  $(".difficulty-choice-custom").click(function(){
+    $(".difficulty-choice").hide();
+    $("#custom-difficulty-form").show();
+  });
+  $("#custom-difficulty-ok").click(function(){
+    let size_x = parseInt($("#custom-width").val());
+    let size_y = parseInt($("#custom-height").val());
+    let num_mines = parseInt($("#custom-mines").val());
+    if (game.set_params(size_x, size_y, num_mines)) {
+      game.reset();
+    }
+  });
+  $("#custom-difficulty-cancel").click(function(){
+    $("#custom-difficulty-form").hide();
+    $(".difficulty-choice").show();
+  });
+  $(".difficulty-choice[data-type=preset]").click(function(){
+    let size_x = parseInt($(this).data("width"));
+    let size_y = parseInt($(this).data("height"));
+    let num_mines = parseInt($(this).data("mines"));
+    if (game.set_params(size_x, size_y, num_mines)) {
+      game.reset();
+    }
+  });
   $("#restart button").click(function(){
     game.reset();
+  });
+  $("#change-difficulty").click(function(){
+    $("#difficulty-settings-container").show();
+    $("#game").hide();
   });
 });
