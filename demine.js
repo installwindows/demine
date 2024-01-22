@@ -91,17 +91,24 @@ class Game {
   }
 
   start(x, y) {
-    // get NUM_MINES random number between 0 and SIZE_X*SIZE_Y-1
     let mines = [];
     let toAvoids = this.get_adjacent(x, y);
     toAvoids.push([x, y]);
     toAvoids = toAvoids.map(function(p){
-      return p[1] * this.SIZE_Y + p[0];
-    }.bind(this));
-    // TODO: this doesn't work for non-square grids
+      return `${p[0]},${p[1]}`;
+    });
+    let max_loops = 1000;
     while(mines.length < this.NUM_MINES){
-      let mine = Math.floor(Math.random() * this.SIZE_X*this.SIZE_Y);
+      let mine_x = Math.floor(Math.random() * this.SIZE_X);
+      let mine_y = Math.floor(Math.random() * this.SIZE_Y);
+      let mine = `${mine_x},${mine_y}`;
+      if (max_loops < 0) {
+        console.log("max loops reached");
+        this.NUM_MINES = mines.length;
+        break;
+      }
       if (toAvoids.indexOf(mine) !== -1) {
+        max_loops--;
         continue;
       }
       if(mines.indexOf(mine) === -1){
@@ -114,8 +121,8 @@ class Game {
     for(let i = 0; i < this.SIZE_Y; i++){
       this.grid[i] = new Array(this.SIZE_X);
       for(let j = 0; j < this.SIZE_X; j++){
-        console.log(i * this.SIZE_Y + j);
-        if (mines.indexOf(i * this.SIZE_Y + j) !== -1){
+        console.log(i * this.SIZE_Y + j, `${j},${i}`);
+        if (mines.indexOf(`${j},${i}`) !== -1){
           this.grid[i][j] = new Cell(j, i, MINE);
           console.log("mine set at", j, i);
         } else {
