@@ -9,6 +9,7 @@ class Cell {
     this.val = val;
     this.revealed = revealed;
     this.flagged = flagged;
+		this.$cell = $(`.cell[data-row=${y}][data-col=${x}]`);
   }
 }
 
@@ -26,6 +27,7 @@ class Game {
     this.NUM_MINES = 20;
     this.$grid = $("#grid");
     this.firstClick = true;
+		this.won = false;
     this.setup_events();
   }
 
@@ -68,6 +70,7 @@ class Game {
     $("#timer").text("0:00");
     $("#flagged-count").text("0");
     this.firstClick = true;
+		this.won = false;
   }
 
   init() {
@@ -172,6 +175,26 @@ class Game {
     }
   }
 
+	render(cells) {
+		for (const cell of cells) {
+			if (cell.revealed && cell.val !== MINE) {
+				cell.$cell.text(cell.val).attr("data-val", cell.val);
+			}
+			else if (cell.revealed && cell.val === MINE) {
+				cell.$cell.attr("data-val", MINE).addClass("boom");
+			}
+			else {
+				if (cell.flagged) {
+					cell.$cell.addClass("flagged");
+				}
+				else {
+					cell.$cell.removeClass("flagged");
+				}
+				$("#flagged-count").text(this.numFlagged);
+			}
+		}
+	}
+
   reveal_cell(x, y) {
     let toReveal = [];
     toReveal.push([x, y]);
@@ -190,6 +213,7 @@ class Game {
         toReveal.push(...positions);
       }
     }
+		let revealed = [];
     while(toReveal.length > 0){
       let p = toReveal.pop();
       let cell = this.grid[p[1]][p[0]];
@@ -197,9 +221,10 @@ class Game {
         continue;
       }
       if (cell.val === MINE) {
-        $(`.cell[data-row=${p[1]}][data-col=${p[0]}]`).attr("data-val", MINE).addClass("boom");
+				cell.revealed = true;
         this.numMinesExploded++;
-        return;
+				revealed.push(cell);
+				break;
       }
       if (cell.val === EMPTY) {
         let positions = this.get_adjacent(p[0], p[1]);
@@ -207,14 +232,38 @@ class Game {
       }
       cell.revealed = true;
       this.numRevealed++;
-      $(`.cell[data-row=${p[1]}][data-col=${p[0]}]`).text(cell.val).attr("data-val", cell.val);
+			revealed.push(cell);
       max++;
       if (max > 100) {
         console.log("max reached");
         break;
       }
     }
+		return revealed;
   }
+
+	flag_cell(x, y) {
+		let cell = this.grid[y][x];
+		if (!cell.revealed) {
+			cell.flagged = !cell.flagged;
+			if (cell.flagged) {
+				this.numFlagged++;
+			} else {
+				this.numFlagged--;
+			}
+		}
+		return cell;
+	}
+
+	check_win() {
+      if (this.numRevealed === this.SIZE_X * this.SIZE_Y - this.NUM_MINES) {
+				this.won = true;
+        this.end();
+      }
+      if (this.numMinesExploded > 0) {
+        this.end();
+      }
+	}
 
   setup_events() {
     // capture right click in a cell
@@ -223,17 +272,8 @@ class Game {
       let $cell = $(event.target);
       const x = $cell.data("col");
       const y = $cell.data("row");
-      let cell = this.grid[y][x];
-      if (!cell.revealed) {
-        $(event.target).toggleClass("flagged");
-        cell.flagged = !cell.flagged;
-        if (cell.flagged) {
-          this.numFlagged++;
-        } else {
-          this.numFlagged--;
-        }
-        $("#flagged-count").text(this.numFlagged);
-      }
+			let cell = this.flag_cell(x, y);
+			this.render([cell]);
     }.bind(this));
 
     $(document).off("click.game").on("click.game", "#grid.running .cell", function(event){
@@ -257,28 +297,18 @@ class Game {
         }.bind(this), 1000);
         this.start(x, y);
       }
-      this.reveal_cell(x, y);
-      // - check if all the non-mine cells are revealed
-      // - check if a mine is revealed
-      if (this.numRevealed === this.SIZE_X * this.SIZE_Y - this.NUM_MINES) {
-        this.end(true);
-      }
-      if (this.numMinesExploded > 0) {
-        this.end(false);
-      }
+      const cells = this.reveal_cell(x, y);
+			this.render(cells);
+			this.check_win();
     }.bind(this));
   }
 
-  // reveal all the mines
-  // stop the timer
-  // show a message
-  // show all the cells
-  end(win) {
-    let message = win ? "You win! 🎉" : "You lose! 😵";
+  end() {
+    let message = this.won ? "You win! 😎" : "You lose! 😵";
     clearInterval(this.timerInterval);
     $("#message").text(message);
     this.$grid.removeClass("running");
-    if (!win) {
+    if (!this.won) {
       console.log("reveal all the mines");
       for(let i = 0; i < this.SIZE_Y; i++){
         for(let j = 0; j < this.SIZE_X; j++){
