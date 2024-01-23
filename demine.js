@@ -86,6 +86,7 @@ class Game {
     $(".difficulty-choice").show();
     $("#difficulty-settings-container").hide();
     $("#game").show();
+		$("#restart").hide();
   }
 
   reset() {
@@ -142,6 +143,7 @@ class Game {
       }
     }
     $("#mines-count").text(this.NUM_MINES);
+		$("#restart").show();
     console.log("start", this.grid);
   }
 
@@ -348,7 +350,7 @@ $(function(){
       game.reset();
     }
   });
-  $("#restart button").click(function(){
+  $("#restart").click(function(){
     game.reset();
   });
   $("#change-difficulty").click(function(){

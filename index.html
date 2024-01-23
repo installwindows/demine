@@ -12,13 +12,19 @@
 	<div id="app">
 		<div id="game">
 			<div id="info">
-				<div id="timer">0:00</div>
-				<div id="flagged">
-					<span id="flagged-count">0</span> / <span id="mines-count">0</span> 🚩
+				<div class="row1">
+					<div id="timer">0:00</div>
 				</div>
-				<div id="message">&nbsp;</div>
-				<div id="restart"><button>Reset</button></div>
-				<div id="change-difficulty"><button>Difficulty</button></div>
+				<div class="row2">
+					<div id="flagged">
+						<span id="flagged-count">0</span> / <span id="mines-count">0</span> 🚩
+					</div>
+					<div id="message">&nbsp;</div>
+					<div id="info-buttons">
+						<button id="restart" title="Start new game">🔄</button>
+						<button id="change-difficulty" title="Change difficulty">🔙</button>
+					</div>
+				</div>
 			</div>
 			<div id="grid"></div>
 		</div>
