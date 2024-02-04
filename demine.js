@@ -322,10 +322,25 @@ class Game {
       }
     }
   }
+
+	cheat() {
+		$("#cheat").show();
+		$("#grid .cell").on("mouseover", function(event){
+			let $cell = $(event.target);
+			let x = $cell.data("col");
+			let y = $cell.data("row");
+			let cell = this.grid[y][x];
+			if (cell.val === MINE) {
+				$("#cheat").css("background-color", "black");
+			} else {
+				$("#cheat").css("background-color", "unset");
+			}
+		}.bind(this));
+	}
 }
 
 $(function(){
-  game = new Game();
+  let game = new Game();
   $(".difficulty-choice-custom").click(function(){
     $(".difficulty-choice").hide();
     $("#custom-difficulty-form").show();
@@ -357,4 +372,22 @@ $(function(){
     $("#difficulty-settings-container").show();
     $("#game").hide();
   });
+	$(document).on("keyup", function(event){
+		if (cheat_index === CHEAT_CODE.length) {
+			if (event.shiftKey && event.keyCode === 13) {
+				cheat_index = 0;
+				if (!game.firstClick) {
+					game.cheat();
+				}
+			}
+		}
+		if (event.key === CHEAT_CODE[cheat_index]) {
+			cheat_index++;
+		} else {
+			cheat_index = 0;
+		}
+	});
 });
+
+const CHEAT_CODE = "xyzzy";
+let cheat_index = 0;
