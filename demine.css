@@ -10,15 +10,15 @@
   font-size: 20px;
 }
 #info .row1 {
-	display: flex;
-	align-items: center;
-	justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 #info .row2 {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 #grid {
   --grid-rows: 10;
@@ -31,8 +31,14 @@
   grid-template-columns: repeat(var(--grid-cols), var(--square-size));
   grid-gap: var(--border-size);
   border: var(--border-size) solid #757575;
-  width: calc(var(--grid-cols) * var(--square-size) + var(--border-size) * var(--grid-cols) + var(--border-size));
-  height: calc(var(--grid-rows) * var(--square-size) + var(--border-size) * var(--grid-rows) + var(--border-size));
+  width: calc(
+    var(--grid-cols) * var(--square-size) + var(--border-size) *
+      var(--grid-cols) + var(--border-size)
+  );
+  height: calc(
+    var(--grid-rows) * var(--square-size) + var(--border-size) *
+      var(--grid-rows) + var(--border-size)
+  );
 }
 
 .cell {
@@ -69,34 +75,35 @@
   content: "💣";
 }
 .cell[data-val="0"] {
-  background-color: #ECECEC;
+  background-color: #ececec;
 }
 .cell[data-val="1"] {
-  background-color: #DDFAC3;
+  background-color: #ddfac3;
 }
 .cell[data-val="2"] {
-  background-color: #ECEDBF;
+  background-color: #ecedbf;
 }
 .cell[data-val="3"] {
-  background-color: #EDDAB4;
+  background-color: #eddab4;
 }
 .cell[data-val="4"] {
-  background-color: #EDC38A;
+  background-color: #edc38a;
 }
 .cell[data-val="5"] {
-  background-color: #F7A1A2;
+  background-color: #f7a1a2;
 }
 .cell[data-val="6"] {
-  background-color: #FEA785;
+  background-color: #fea785;
 }
 .cell[data-val="7"] {
-  background-color: #FF7D60;
+  background-color: #ff7d60;
 }
 .cell[data-val="8"] {
-  background-color: #FF323C;
+  background-color: #ff323c;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
 }
