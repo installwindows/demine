@@ -87,6 +87,7 @@ class Game {
     $("#difficulty-settings-container").hide();
     $("#game").show();
     $("#restart").hide();
+    $("#nav-button").hide();
   }
 
   reset() {
@@ -342,6 +343,23 @@ class Game {
         }
       }
     }
+    // log score into storage
+    let score = $("#timer").text();
+    let difficulty = `${this.SIZE_X}x${this.SIZE_Y} ${this.NUM_MINES}`;
+    let date = new Date().toLocaleString();
+    let result = this.won ? "win" : "lose";
+    let score_data = { score, difficulty, date, result };
+    let scores = JSON.parse(localStorage.getItem("scores")) || [];
+    scores.push(score_data);
+    // sort scores
+    scores.sort(function (a, b) {
+      let a_time = a.score.split(":");
+      let b_time = b.score.split(":");
+      let a_seconds = parseInt(a_time[0]) * 60 + parseInt(a_time[1]);
+      let b_seconds = parseInt(b_time[0]) * 60 + parseInt(b_time[1]);
+      return a_seconds - b_seconds;
+    });
+    localStorage.setItem("scores", JSON.stringify(scores));
   }
 
   cheat() {
@@ -395,6 +413,29 @@ $(function () {
   $("#change-difficulty").click(function () {
     $("#difficulty-settings-container").show();
     $("#game").hide();
+    $("#nav-button").show();
+  });
+  $("#nav-button").on("click", function () {
+    let text = $("#nav-button").text();
+    $("#nav-button").text($("#nav-button").data("text"));
+    $("#nav-button").data("text", text);
+    $("#difficulty-settings").toggle();
+    if (text === "Scoreboard") {
+      let scores = JSON.parse(localStorage.getItem("scores")) || [];
+      console.log("scores", scores);
+      $("#scoreboard-list-container ol").html("");
+      for (let score of scores) {
+        console.log("score", score);
+        let $ol = $("#scoreboard-list-container").find(
+          `div[data-difficulty="${score.difficulty}"] ol`,
+        );
+        let $li = $(
+          `<li>${score.score} - ${score.date} - ${score.result}</li>`,
+        );
+        $li.appendTo($ol);
+      }
+    }
+    $("#scoreboard").toggle();
   });
   $(document).on("keyup", function (event) {
     if (cheat_index === CHEAT_CODE.length) {

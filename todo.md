@@ -2,14 +2,17 @@
 
 There is many things that needs to be done. What? Fly...ing fly...ing cliff racers fly...ing.
 
-So far, we have a working js version of the game. It was made quickly and with no cleaning. Things that are still missing are a scoreboard and ~~a way to cheat by pressing a key combination xyxxz or something.
+So far, we have a working js version of the game. It was made quickly and with no cleaning. ~~Things that are still missing are a scoreboard~~ and ~~a way to cheat by pressing a key combination xyxxz or something.
 (I just googled it and it's XYZZY Shift-Enter Enter)~~
+
+- [ ] Import/Export minefields (for debugging)
+- [ ] Improve scoreboard (name field, don't show loses, make it prettier)
 
 What I want to do next is bettering the development system.
 
-- add git hooks to format the code
-- use sass
-- update the dev server to compile the sass on file changes
+- [x] add git hooks to format the code
+- [ ] use sass
+- [ ] update the dev server to compile the sass on file changes
 
 Once everything in place, it's time for server-siding the game. Right now it's possible to just open the dev console and find the mines. You can just cheat without entering the cheat code and scanning the cells by looking at the code and debbuging the js.
 

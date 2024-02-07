@@ -10,6 +10,9 @@
 </head>
 <body>
 	<div id="app">
+		<nav>
+			<button id="nav-button" data-text="Difficulty">Scoreboard</button>
+		</nav>
 		<div id="game">
 			<div id="info">
 				<div class="row1">
@@ -67,7 +70,23 @@
 				</div>
 			</div>
 		</div>
+		<div id="scoreboard">
+			<div id="scoreboard-list-container">
+				<div data-difficulty="8x8 10">
+					<h2>10x10 10 mines</h2>
+					<ol></ol>
+				</div>
+				<div data-difficulty="16x16 40">
+					<h2>16x16 40 mines</h2>
+					<ol></ol>
+				</div>
+				<div data-difficulty="30x16 99">
+					<h2>30x16 99 mines</h2>
+					<ol></ol>
+				</div>
+			</div>
+		</div>
+		<div id="cheat"></div>
 	</div>
-	<div id="cheat"></div>
 </body>
 </html>
