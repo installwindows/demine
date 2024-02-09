@@ -148,6 +148,12 @@ class Game {
     console.log("start", this.grid);
   }
 
+  save_grid() {
+    let grid_id = localStorage.getItem("grid_id") || 0;
+    localStorage.setItem(`grid-${grid_id}`, JSON.stringify(self.grid));
+    localStorage.setItem("grid_id", parseInt(grid_id) + 1);
+  }
+
   get_adjacent(x, y) {
     // up-left, up, up-right
     // left, right
@@ -414,6 +420,9 @@ $(function () {
     $("#difficulty-settings-container").show();
     $("#game").hide();
     $("#nav-button").show();
+  });
+  $("#save-grid").on("click", function () {
+    game.save_grid();
   });
   $("#nav-button").on("click", function () {
     let text = $("#nav-button").text();

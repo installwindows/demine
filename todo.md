@@ -7,6 +7,7 @@ So far, we have a working js version of the game. It was made quickly and with n
 
 - [ ] Import/Export minefields (for debugging)
 - [ ] Improve scoreboard (name field, don't show loses, make it prettier)
+- [ ] Use a "modal" system for the different views
 
 What I want to do next is bettering the development system.
 
@@ -46,3 +47,10 @@ I already have a VPS with nginx as a reverse proxy for a few software I'm using.
 I need to follow the official django doc to make the app production ready and use a python server like gunicorn behind nginx to serve the static files. Something like that?
 
 Everytime I want to start a new django project I have to start the django tutorial all over again to get the scafolding. The urls, the settings, the database, static folder, first model and view. I'm not reusing the app I created elsewhere so I only run the django-admin command to create a new app once.
+
+
+## TODO: more features
+
+- [ ] AI:
+    - human like AI (with mouse mouvement, clicks, flags)
+    - perfect AI (no mouse mouvement, just reveal the cells)
